@@ -1,26 +1,38 @@
 <template>
     <div :style="indentClass">
-        <span 
-            class="folder-arrow"
-            :class="{'floding': !itemData.expand}"
-            v-if="itemData.children.length > 0"
-            @click="toggleExpand"
-        ></span>
-        
-        <span
-            class="checkbox"
-            :class="checkStatus"
-            @click="toggleCheck"
-        ></span>
-        <span
-            class="item-text"
-            @click="toggleSelect"
-            :class="{'item-select': itemData.selected}"
-        >{{ itemData.value }}</span>
+        <empty-item 
+            v-if="isEditing"
+            :value="itemData.value"
+            :nodePath="myNodePath"
+            @closeEditing="isEditing = false"
+        ></empty-item>
+
+        <template v-else>
+            <span 
+                v-show="itemData.children.length > 0"
+                class="folder-arrow"
+                :class="{'floding': !itemData.expand}"
+                @click="toggleExpand"
+            ></span>
+            
+            <span
+                class="checkbox"
+                :class="checkStatus"
+                @click="toggleCheck"
+            ></span>
+            <span
+                title="双击编辑内容"
+                class="item-text"
+                @click="toggleSelect"
+                :class="{'item-select': itemData.selected}"
+            >{{ itemData.value }}</span>
+        </template>
     </div>
 </template>
 
 <script>
+import EmptyItem from './empty-item.vue';
+
 export default {
     props: {
         itemData: {
@@ -28,7 +40,7 @@ export default {
             default: () => ({
                 value: '',
                 checked: 0,
-                isSelect: false,
+                selected: false,
                 index: 0,
                 parentPath: '',
                 children: [],
@@ -38,6 +50,11 @@ export default {
         intendWidth: { // 每个等级缩进宽度
             type: Number,
             default: 40
+        }
+    },
+    data() {
+        return {
+            // isEditing: false
         }
     },
     computed: {
@@ -55,6 +72,9 @@ export default {
             const statusMap = { 0: 'no', 1: 'partial', 2: 'checked' };
 
             return statusMap[this.itemData.checked];
+        },
+        isEditing() {
+            return this.itemData.value === '';
         },
         myNodePath() {
             if(!this.itemData.parentPath) { // 根节点
@@ -82,6 +102,9 @@ export default {
             this.changeExpand(this.myNodePath, !this.itemData.expand);
             this.$emit('toggleExpand'); // 向父组件触发更新事件
         }
+    },
+    components: {
+        EmptyItem
     }
 }
 </script>
